@@ -124,10 +124,10 @@ let rec analyse_syntaxique_t l =
         if is_exp h && not (Stack.is_empty st) then begin
           let top = Stack.top st and exp = get_exp h in
             if t_arity top = 1 && t_priority top = priority then begin
-              Stack.pop st;
+              ignore (Stack.pop st);
               Stack.push (process_t top exp exp) st
             end else if t_arity top = 2 && t_priority top = priority then begin
-              Stack.pop st;
+              ignore (Stack.pop st);
               let exp2 = get_exp (Stack.pop st) in
                 Stack.push (process_t top exp2 exp) st
             end else Stack.push h st

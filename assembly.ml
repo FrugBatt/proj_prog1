@@ -22,7 +22,7 @@ let rec generate_main = function
 let generate_assembly e =
   let header = globl "main" in
   let main = label "main" ++ (generate_main e) ++ popq rdi ++ call "print_int" ++ ret in
-  let data = label "S_int" ++ string "%d" in
+  let data = label "S_int" ++ string "%d\n" in
   {text = header ++ main ++ print_int_fun; data = data}
 
 let write_assembly file e =
