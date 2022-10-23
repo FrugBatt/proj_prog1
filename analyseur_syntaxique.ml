@@ -95,7 +95,14 @@ let reconstruct_stack st =
   while not (Stack.is_empty st) do
     l := (Stack.pop st) :: !l
   done;
-  Printf.printf "reconstructed";
+  !l
+
+let extract_parenth st =
+  let l = ref [] in
+  while Stack.top st <> SL_Parenth do
+    l := (Stack.pop st) :: !l
+  done;
+  ignore (Stack.pop st);
   !l
 
 let t_of_lexem = function
@@ -130,9 +137,14 @@ let rec analyse_syntaxique_t l =
               ignore (Stack.pop st);
               let exp2 = get_exp (Stack.pop st) in
                 Stack.push (process_t top exp2 exp) st
-            end else Stack.push h st
-        end else Stack.push h st;
-        aux priority t
+            end else Stack.push h st;
+            aux priority t
+        end else if h = SR_Parenth then
+          let parenth = extract_parenth st in aux priority ((SExp (analyse_syntaxique_t parenth))::t);
+        else begin
+          Stack.push h st;
+          aux priority t
+        end
   in aux max_prio l
 
 let analyse_syntaxique lexems = analyse_syntaxique_t (List.map t_of_lexem lexems)
