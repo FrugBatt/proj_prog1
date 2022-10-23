@@ -17,6 +17,9 @@ let rec generate_main = function
   | Plus_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ addq (reg r13) (reg r14) ++ pushq (reg r14)
   | Minus_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ subq (reg r13) (reg r14) ++ pushq (reg r14)
   | Times_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ imulq (reg r13) (reg r14) ++ pushq (reg r14)
+  | Div (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ movq (imm 0) (reg rdx) ++ idivq (reg r13) ++ pushq (reg rax)
+  | Mod (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ movq (imm 0) (reg rdx) ++ idivq (reg r13) ++ pushq (reg rdx)
+  | Minus_unary (e) -> generate_main (Times_int (Int (-1), e))
   | _ -> failwith "not implemented"
 
 let generate_assembly e =

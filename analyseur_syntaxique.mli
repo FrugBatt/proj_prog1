@@ -2,7 +2,6 @@ type exp =
   | Int of int
   | Float of float
   | Parenth of exp
-  | Plus_unary of exp
   | Minus_unary of exp
   | Int_fun of exp
   | Float_fun of exp

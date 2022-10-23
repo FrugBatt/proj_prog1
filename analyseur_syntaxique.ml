@@ -2,7 +2,6 @@ type exp =
   | Int of int
   | Float of float
   | Parenth of exp
-  | Plus_unary of exp
   | Minus_unary of exp
   | Int_fun of exp
   | Float_fun of exp
@@ -38,8 +37,8 @@ let t_priority = function
   | SExp _ -> -1
   | SL_Parenth -> -1
   | SR_Parenth -> -1
-  | SPlus_unary -> 1
-  | SMinus_unary -> 1
+  | SPlus_unary -> 2
+  | SMinus_unary -> 2
   | SPlus_int -> 1
   | SPlus_float -> 1
   | SMinus_int -> 1
@@ -70,7 +69,7 @@ let process_t ope e1 e2 = match ope with
   | SExp e -> SExp e
   | SL_Parenth -> failwith "Unprocessable"
   | SR_Parenth -> failwith "Unprocessable"
-  | SPlus_unary -> SExp (Plus_unary e1)
+  | SPlus_unary -> SExp (e1)
   | SMinus_unary -> SExp (Minus_unary e1)
   | SPlus_int -> SExp (Plus_int (e1,e2))
   | SPlus_float -> SExp (Plus_float (e1,e2))
@@ -142,7 +141,9 @@ let rec analyse_syntaxique_t l =
         end else if h = SR_Parenth then
           let parenth = extract_parenth st in aux priority ((SExp (analyse_syntaxique_t parenth))::t);
         else begin
-          Stack.push h st;
+          if h = SPlus_int && not (Stack.is_empty st) && not (is_exp (Stack.top st)) then Stack.push SPlus_unary st
+          else if h = SMinus_int && not (Stack.is_empty st) && not (is_exp (Stack.top st)) then Stack.push SMinus_unary st
+          else Stack.push h st;
           aux priority t
         end
   in aux max_prio l
