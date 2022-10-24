@@ -71,6 +71,24 @@ val r14: [`Q] register
 val r15: [`Q] register
   (** registres 64 bits *)
 
+val xmm0: [`Q] register
+val xmm1: [`Q] register
+val xmm2: [`Q] register
+val xmm3: [`Q] register
+val xmm4: [`Q] register
+val xmm5: [`Q] register
+val xmm6: [`Q] register
+val xmm7: [`Q] register
+val xmm8: [`Q] register
+val xmm9: [`Q] register
+val xmm10: [`Q] register
+val xmm11: [`Q] register
+val xmm12: [`Q] register
+val xmm13: [`Q] register
+val xmm14: [`Q] register
+val xmm15: [`Q] register
+  (** registres flottants *)
+
 val eax: [`L] register
 val ebx: [`L] register
 val ecx: [`L] register
@@ -167,6 +185,8 @@ val movl: [`L] operand -> [`L] operand -> text
 val movq: [`Q] operand -> [`Q] operand -> text
   (** attention : toutes les combinaisons d'opérandes ne sont pas permises *)
 
+val movsd: [`Q] operand -> [`Q] operand -> text
+
 val movsbw: [`B] operand -> [`W] register -> text
 val movsbl: [`B] operand -> [`L] register -> text
 val movsbq: [`B] operand -> [`Q] register -> text
@@ -211,15 +231,19 @@ val addb: [`B] operand -> [`B] operand -> text
 val addw: [`W] operand -> [`W] operand -> text
 val addl: [`L] operand -> [`L] operand -> text
 val addq: [`Q] operand -> [`Q] operand -> text
+val addsd: [`Q] operand -> [`Q] operand -> text
 
 val subb: [`B] operand -> [`B] operand -> text
 val subw: [`W] operand -> [`W] operand -> text
 val subl: [`L] operand -> [`L] operand -> text
 val subq: [`Q] operand -> [`Q] operand -> text
+val subsd: [`Q] operand -> [`Q] operand -> text
 
 val imulw: [`W] operand -> [`W] operand -> text
 val imull: [`L] operand -> [`L] operand -> text
 val imulq: [`Q] operand -> [`Q] operand -> text
+
+val mulsd: [`Q] operand -> [`Q] operand -> text
 
 val idivq: [`Q] operand -> text
 val cqto: text
@@ -308,6 +332,9 @@ val testw: [`W] operand -> [`W] operand -> text
 val testl: [`L] operand -> [`L] operand -> text
 val testq: [`Q] operand -> [`Q] operand -> text
 
+val cvttsd2si: [`Q] operand -> [`Q] operand -> text
+val cvtsi2sdq: [`Q] operand -> [`Q] operand -> text
+
 val sete : [`B] operand -> text  (* =  0 *)
 val setne: [`B] operand -> text  (* <> 0 *)
 val sets : [`B] operand -> text  (* <  0 *)
@@ -347,6 +374,8 @@ val comment : string -> [> ] asm
 
 val string : string -> data
   (** une constante chaîne de caractères (terminée par 0) *)
+
+val double: float -> data
 
 val dbyte : int list -> data
 val dword : int list -> data

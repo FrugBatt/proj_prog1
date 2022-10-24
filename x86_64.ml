@@ -27,6 +27,24 @@ let r13 = "%r13"
 let r14 = "%r14"
 let r15 = "%r15"
 
+let xmm0 = "%xmm0"
+let xmm1 = "%xmm1"
+let xmm2 = "%xmm2"
+let xmm3 = "%xmm3"
+let xmm4 = "%xmm4"
+let xmm5 = "%xmm5"
+let xmm6 = "%xmm6"
+let xmm7 = "%xmm7"
+let xmm8 = "%xmm8"
+let xmm9 = "%xmm9"
+let xmm10 = "%xmm10"
+let xmm11 = "%xmm11"
+let xmm12 = "%xmm12"
+let xmm13 = "%xmm13"
+let xmm14 = "%xmm14"
+let xmm15 = "%xmm15"
+
+
 let eax = "%eax"
 let ebx = "%ebx"
 let ecx = "%ecx"
@@ -143,6 +161,8 @@ let movw a b = ins "movw %a, %a" a () b ()
 let movl a b = ins "movl %a, %a" a () b ()
 let movq a b = ins "movq %a, %a" a () b ()
 
+let movsd a b = ins "movsd %a, %a" a () b ()
+
 let movabsq a b = ins "movabsq %a, %s" a () b
 
 let movsbw a b = ins "movsbw %a, %s" a () b
@@ -182,15 +202,19 @@ let addb a b = ins "addb %a, %a" a () b ()
 let addw a b = ins "addw %a, %a" a () b ()
 let addl a b = ins "addl %a, %a" a () b ()
 let addq a b = ins "addq %a, %a" a () b ()
+let addsd a b = ins "addsd %a, %a" a () b ()
 
 let subb a b = ins "subb %a, %a" a () b ()
 let subw a b = ins "subw %a, %a" a () b ()
 let subl a b = ins "subl %a, %a" a () b ()
 let subq a b = ins "subq %a, %a" a () b ()
+let subsd a b = ins "subsd %a, %a" a () b ()
 
 let imulw a b = ins "imulw %a, %a" a () b ()
 let imull a b = ins "imull %a, %a" a () b ()
 let imulq a b = ins "imulq %a, %a" a () b ()
+
+let mulsd a b = ins "mulsd %a, %a" a () b ()
 
 let idivq a = ins "idivq %a" a ()
 let cqto = S "\tcqto\n"
@@ -263,6 +287,9 @@ let testw a b = ins "testw %a, %a" a () b ()
 let testl a b = ins "testl %a, %a" a () b ()
 let testq a b = ins "testq %a, %a" a () b ()
 
+let cvttsd2si a b = ins "cvttsd2si %a, %a" a () b ()
+let cvtsi2sdq a b = ins "cvtsi2sdq %a, %a" a () b ()
+
 let sete  a = ins "sete %a" a ()
 let setne a = ins "setne %a" a ()
 let sets  a = ins "sets %a" a ()
@@ -288,6 +315,7 @@ let dint  l = ins ".int %a" pr_ilist l
 let dword l = ins ".word %a" pr_ilist l
 let dquad l = ins ".quad %a" pr_ilist l
 let string s = ins ".string %S" s
+let double d = ins ".double %f" d
 
 let address l = ins ".quad %a" pr_alist l
 let space n = ins ".space %d" n

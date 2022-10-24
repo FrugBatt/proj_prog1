@@ -55,7 +55,7 @@ let as_exp_of_exp e =
 
 let rec as_exp_data = function
   | AInt x -> nop
-  | AFloat (l,x) -> label l ++ inline (" .double "^(string_of_float x)^"\n")
+  | AFloat (l,x) -> label l ++ double x
   | AMinus_unary e -> as_exp_data e
   | AInt_fun e -> as_exp_data e
   | AFloat_fun e -> as_exp_data e
@@ -85,32 +85,36 @@ let print_float_fun =
 
 let push_int op = subq (imm 8) (reg rbp) ++ movq op (ind rbp)
 let pop_int r = movq (ind rbp) (reg r) ++ addq (imm 8) (reg rbp)
-let push_float label = subq (imm 8) (reg rbp) ++ inline ("  movsd "^label^", %xmm0\n") ++ inline "  movsd %xmm0, 0(%rbp)\n"
-let pop_float regx = inline ("  movsd 0(%rbp), "^regx^"\n") ++ addq (imm 8) (reg rbp)
+let push_float op = subq (imm 8) (reg rbp) ++ movsd op (reg xmm0) ++ movsd (reg xmm0) (ind rbp)
+let pop_float regx = movsd (ind rbp) (reg regx) ++ addq (imm 8) (reg rbp)
 
 let extract_stack = pop_int r13 ++ pop_int r14
-let extract_stack_float = pop_float "%xmm0" ++ pop_float "%xmm1"
+let extract_stack_float = pop_float xmm0 ++ pop_float xmm1
 
 let rec generate_main = function
   | AInt x -> push_int (imm x)
-  | AFloat (l,_) -> push_float l
+  | AFloat (l,_) -> push_float (lab l)
   | APlus_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ addq (reg r13) (reg r14) ++ push_int (reg r14)
   | AMinus_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ subq (reg r13) (reg r14) ++ push_int (reg r14)
   | ATimes_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ imulq (reg r13) (reg r14) ++ push_int (reg r14)
   | ADiv (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ movq (imm 0) (reg rdx) ++ idivq (reg r13) ++ push_int (reg rax)
   | AMod (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ movq (imm 0) (reg rdx) ++ idivq (reg r13) ++ push_int (reg rdx)
-  | APlus_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ inline "  addsd %xmm0, %xmm1\n" ++ push_float "%xmm1"
-  | AMinus_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ inline "  subsd %xmm0, %xmm1\n" ++ push_float "%xmm1"
-  (*| AMinus_unary (e) -> generate_main (Times_int (Int (-1), e))*)
+  | APlus_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ addsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
+  | AMinus_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ subsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
+  | AInt_fun e -> (generate_main e) ++ pop_float xmm0 ++ cvttsd2si (reg xmm0) (reg r14) ++ push_int (reg r14)
+  | AFloat_fun e -> (generate_main e) ++ pop_int r14 ++ cvtsi2sdq (reg r14) (reg xmm0) ++ push_float (reg xmm0)
+  | AMinus_unary (e) ->
+      if type_of_exp e = TInt then generate_main (ATimes_int (AInt (-1), e))
+      else (generate_main e) ++ pop_float xmm0 ++ mulsd (lab ".NEG") (reg xmm0) ++ push_float (reg xmm0)
   | _ -> failwith "not implemented"
 
 let generate_assembly e =
   let header = globl "main" in
   let t = type_of_exp e in
   let main = label "main" ++ movq (reg rsp) (reg rbp) ++ (generate_main e) in
-  let data = label "S_int" ++ string "%d\n" ++ label "S_float" ++ string "%f\n" ++ as_exp_data e in
-  if t = TInt then {text = header ++ main ++ pop_int rdi ++ call "print_int" ++ ret ++ print_int_fun ++ print_float_fun; data = data}
-  else {text = header ++ main ++ pop_float "%xmm0" ++ call "print_float" ++ ret ++ print_int_fun ++ print_float_fun; data = data}
+  let data = label "S_int" ++ string "%d\n" ++ label "S_float" ++ string "%f\n" ++ label ".NEG" ++ double (-1.0) ++ as_exp_data e in
+  if t = TInt then {text = header ++ main ++ pop_int rdi ++ call "print_int" ++ ret ++ print_int_fun; data = data}
+  else {text = header ++ main ++ pop_float xmm0 ++ call "print_float" ++ ret ++ print_float_fun; data = data}
 
 let write_assembly file e =
   let oc = open_out file in

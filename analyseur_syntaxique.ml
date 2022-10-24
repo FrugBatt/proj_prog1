@@ -1,7 +1,6 @@
 type exp =
   | Int of int
   | Float of float
-  | Parenth of exp
   | Minus_unary of exp
   | Int_fun of exp
   | Float_fun of exp
@@ -47,8 +46,8 @@ let t_priority = function
   | STimes_float -> 2
   | SDiv -> 2
   | SMod -> 2
-  | SInt_fun -> -1
-  | SFloat_fun -> -1
+  | SInt_fun -> 2
+  | SFloat_fun -> 2
 let t_arity = function
   | SExp _ -> 0
   | SL_Parenth -> 0
