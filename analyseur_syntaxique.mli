@@ -13,4 +13,7 @@ type exp =
   | Div of exp*exp
   | Mod of exp*exp
 
+exception Invalid_syntax
+exception Invalid_type
+
 val analyse_syntaxique : Analyseur_lexical.lexem list -> exp

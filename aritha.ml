@@ -1,3 +1,5 @@
+open Analyseur_lexical
+
 let usage = "Usage : ./aritha expression.exp"
 
 let compile_exp exp_s file_s =
@@ -16,4 +18,8 @@ let _ =
       compile_exp line file_s;
       flush stdout;
       close_in ic
-    with e -> close_in_noerr ic
+    with
+      | Analyseur_lexical.Invalid_lexem -> Printf.printf "Invalid lexem\n"
+      | Analyseur_syntaxique.Invalid_syntax -> Printf.printf "Invalid syntax\n"
+      | Analyseur_syntaxique.Invalid_type -> Printf.printf "Invalid type\n"
+      | e -> close_in_noerr ic

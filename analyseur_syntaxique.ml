@@ -13,6 +13,8 @@ type exp =
   | Div of exp*exp
   | Mod of exp*exp
 
+exception Invalid_syntax
+exception Invalid_type
 
 type syntax_t =
   | SExp of exp
@@ -48,6 +50,7 @@ let t_priority = function
   | SMod -> 2
   | SInt_fun -> 2
   | SFloat_fun -> 2
+
 let t_arity = function
   | SExp _ -> 0
   | SL_Parenth -> 0
@@ -64,6 +67,7 @@ let t_arity = function
   | SMod -> 2
   | SInt_fun -> 1
   | SFloat_fun -> 1
+
 let process_t ope e1 e2 = match ope with
   | SExp e -> SExp e
   | SL_Parenth -> failwith "Unprocessable"
@@ -86,7 +90,7 @@ let is_exp = function
   | _ -> false
 let get_exp = function
   | SExp e -> e
-  | _ -> failwith "Not exp"
+  | _ -> raise Invalid_syntax
 
 let reconstruct_stack st =
   let l = ref [] in
@@ -123,7 +127,7 @@ let rec analyse_syntaxique_t l =
   let st = Stack.create () in
   let rec aux priority l = match l with
       | [] ->
-        if priority = 1 then get_exp (Stack.pop st)
+        if priority = 1 then if Stack.length st = 1 then get_exp (Stack.pop st) else raise Invalid_syntax
         else let new_l = reconstruct_stack st in aux (priority-1) new_l
       | h::t ->
         if is_exp h && not (Stack.is_empty st) then begin
@@ -147,4 +151,43 @@ let rec analyse_syntaxique_t l =
         end
   in aux max_prio l
 
-let analyse_syntaxique lexems = analyse_syntaxique_t (List.map t_of_lexem lexems)
+
+
+type exp_t =
+  | TInt
+  | TFloat
+
+let rec type_of_exp = function
+  | Int _ -> TInt
+  | Float _ -> TFloat
+  | Minus_unary e -> type_of_exp e
+  | Int_fun _ -> TInt
+  | Float_fun _ -> TFloat
+  | Plus_int _ -> TInt
+  | Plus_float _ -> TFloat
+  | Minus_int _ -> TInt
+  | Minus_float _ -> TFloat
+  | Times_int _ -> TInt
+  | Times_float _ -> TFloat
+  | Div _ -> TInt
+  | Mod _ -> TInt
+
+let rec check_type = function
+  | Int _ -> true
+  | Float _ -> true
+  | Minus_unary e -> check_type e
+  | Int_fun e -> (type_of_exp e = TFloat) && check_type e
+  | Float_fun e -> (type_of_exp e = TInt) && check_type e
+  | Plus_int (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Plus_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
+  | Minus_int (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Minus_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
+  | Times_int (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Times_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
+  | Div (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Mod (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+
+let analyse_syntaxique lexems =
+  let ast = analyse_syntaxique_t (List.map t_of_lexem lexems) in
+  if check_type ast then ast
+  else raise Invalid_type

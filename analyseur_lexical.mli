@@ -14,4 +14,6 @@ type lexem =
   | Int of int
   | Float of float
 
+exception Invalid_lexem
+
 val analyse_lexicale : string -> lexem list
