@@ -15,6 +15,7 @@ type as_exp =
   | ATimes_float of as_exp*as_exp
   | ADiv of as_exp*as_exp
   | AMod of as_exp*as_exp
+  | AFact of string*as_exp
 
 type exp_type =
   | TInt
@@ -34,12 +35,13 @@ let rec type_of_exp = function
   | ATimes_float _ -> TFloat
   | ADiv _ -> TInt
   | AMod _ -> TInt
+  | AFact _ -> TInt
 
 let as_exp_of_exp e =
-  let i = ref (-1) in
+  let fl = ref (-1) and fa= ref (-1) in
   let rec aux = function
     | Int x -> AInt x
-    | Float x -> incr i; AFloat (".LC"^(string_of_int !i), x)
+    | Float x -> incr fl; AFloat (".LC"^(string_of_int !fl), x)
     | Minus_unary e1 -> AMinus_unary (aux e1)
     | Int_fun e1 -> AInt_fun (aux e1)
     | Float_fun e1 -> AFloat_fun (aux e1)
@@ -51,6 +53,7 @@ let as_exp_of_exp e =
     | Times_float (e1,e2) -> ATimes_float (aux e1, aux e2)
     | Div (e1,e2) -> ADiv (aux e1, aux e2)
     | Mod (e1,e2) -> AMod (aux e1, aux e2)
+    | Fact e -> incr fa; AFact (".FACT"^(string_of_int !fa), aux e)
   in aux e
 
 let rec as_exp_data = function
@@ -67,6 +70,7 @@ let rec as_exp_data = function
   | ATimes_float (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | ADiv (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | AMod (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
+  | AFact (_,e) -> as_exp_data e
   
 let print_int_fun =
   label "print_int" ++
@@ -106,6 +110,7 @@ let rec generate_main = function
   | AMinus_unary (e) ->
       if type_of_exp e = TInt then generate_main (ATimes_int (AInt (-1), e))
       else (generate_main e) ++ pop_float xmm0 ++ mulsd (lab ".NEG") (reg xmm0) ++ push_float (reg xmm0)
+  | AFact (l,e) -> (generate_main e) ++ pop_int r15 ++ push_int (imm 1) ++ push_int (imm 1) ++ label l ++ pop_int r13 ++ pop_int r14 ++ addq (imm 1) (reg r14) ++ imulq (reg r14) (reg r13) ++ push_int (reg r14) ++ push_int (reg r13) ++ cmpq (reg r14) (reg r15) ++ jnz l ++ pop_int r13 ++ pop_int r14 ++ push_int (reg r13)
   | _ -> failwith "not implemented"
 
 let generate_assembly e =

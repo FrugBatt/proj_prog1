@@ -12,6 +12,7 @@ type exp =
   | Times_float of exp*exp
   | Div of exp*exp
   | Mod of exp*exp
+  | Fact of exp
 
 exception Invalid_syntax
 exception Invalid_type

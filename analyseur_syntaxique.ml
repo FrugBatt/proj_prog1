@@ -12,6 +12,7 @@ type exp =
   | Times_float of exp*exp
   | Div of exp*exp
   | Mod of exp*exp
+  | Fact of exp
 
 exception Invalid_syntax
 exception Invalid_type
@@ -32,14 +33,15 @@ type syntax_t =
   | SMod
   | SInt_fun
   | SFloat_fun
+  | SFact
 
-let max_prio = 2
+let max_prio = 3
 let t_priority = function
   | SExp _ -> -1
   | SL_Parenth -> -1
   | SR_Parenth -> -1
-  | SPlus_unary -> 2
-  | SMinus_unary -> 2
+  | SPlus_unary -> 3
+  | SMinus_unary -> 3
   | SPlus_int -> 1
   | SPlus_float -> 1
   | SMinus_int -> 1
@@ -48,8 +50,9 @@ let t_priority = function
   | STimes_float -> 2
   | SDiv -> 2
   | SMod -> 2
-  | SInt_fun -> 2
-  | SFloat_fun -> 2
+  | SInt_fun -> 3
+  | SFloat_fun -> 3
+  | SFact -> 3
 
 let t_arity = function
   | SExp _ -> 0
@@ -67,6 +70,7 @@ let t_arity = function
   | SMod -> 2
   | SInt_fun -> 1
   | SFloat_fun -> 1
+  | SFact -> -1
 
 let process_t ope e1 e2 = match ope with
   | SExp e -> SExp e
@@ -84,6 +88,7 @@ let process_t ope e1 e2 = match ope with
   | SMod -> SExp (Mod (e1,e2))
   | SInt_fun -> SExp (Int_fun e1)
   | SFloat_fun -> SExp (Float_fun e1)
+  | SFact -> SExp (Fact e1)
 
 let is_exp = function
   | SExp _ -> true
@@ -122,6 +127,7 @@ let t_of_lexem = function
   | Analyseur_lexical.Float_fun -> SFloat_fun
   | Analyseur_lexical.Int x -> SExp (Int x)
   | Analyseur_lexical.Float x -> SExp (Float x)
+  | Analyseur_lexical.Fact -> SFact
 
 let rec analyse_syntaxique_t l =
   let st = Stack.create () in
@@ -140,6 +146,12 @@ let rec analyse_syntaxique_t l =
               let exp2 = get_exp (Stack.pop st) in
                 Stack.push (process_t top exp2 exp) st
             end else Stack.push h st;
+            aux priority t
+        end else if t_arity h = (-1) && t_priority h = priority then begin
+          if Stack.is_empty st then raise Invalid_syntax
+          else let top = Stack.pop st in
+            if is_exp top then Stack.push (process_t h (get_exp top) (get_exp top)) st
+            else raise Invalid_syntax;
             aux priority t
         end else if h = SR_Parenth then
           let parenth = extract_parenth st in aux priority ((SExp (analyse_syntaxique_t parenth))::t);
@@ -171,6 +183,7 @@ let rec type_of_exp = function
   | Times_float _ -> TFloat
   | Div _ -> TInt
   | Mod _ -> TInt
+  | Fact _ -> TInt
 
 let rec check_type = function
   | Int _ -> true
@@ -186,6 +199,7 @@ let rec check_type = function
   | Times_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
   | Div (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
   | Mod (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Fact e -> (type_of_exp e = TInt) && check_type e
 
 let analyse_syntaxique lexems =
   let ast = analyse_syntaxique_t (List.map t_of_lexem lexems) in

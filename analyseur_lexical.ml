@@ -13,6 +13,7 @@ type lexem =
   | Float_fun
   | Int of int
   | Float of float
+  | Fact
 
 exception Invalid_lexem
 
@@ -41,6 +42,7 @@ let lexem_of_string = function (* Traduction d'un string découpé du string ini
   | "%" -> Some Mod
   | "int" -> Some Int_fun
   | "float" -> Some Float_fun
+  | "!" -> Some Fact
   | s ->
     if is_number s then Some(Int(int_of_string s))
     else if is_float s then Some(Float(float_of_string s))

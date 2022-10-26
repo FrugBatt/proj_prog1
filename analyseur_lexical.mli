@@ -13,6 +13,7 @@ type lexem =
   | Float_fun
   | Int of int
   | Float of float
+  | Fact
 
 exception Invalid_lexem
 
