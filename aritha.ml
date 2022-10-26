@@ -3,7 +3,7 @@ open Analyseur_lexical
 let usage = "Usage : ./aritha expression.exp"
 
 let compile_exp exp_s file_s =
-  let lexems = Analyseur_lexical.analyse_lexicale exp_s in
+  let lexems = Analyseur_lexical.analyse_lexicale (List.fold_left (^) "" (String.split_on_char ' ' exp_s)) in
   let ast = Analyseur_syntaxique.analyse_syntaxique lexems in
   Assembly.write_assembly file_s ast
 
