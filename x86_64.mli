@@ -297,6 +297,7 @@ val call_star: [`Q] operand -> text
 val leave: text
 val ret: text
   (** appel de fonction et retour *)
+val cqo: text
 
 val jmp : label -> text
   (** saut inconditionnel *)

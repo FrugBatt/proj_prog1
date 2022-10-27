@@ -261,6 +261,7 @@ let call (z: label) = ins "call %a" mangle z
 let call_star z = ins "call *%a" z ()
 let leave = ins "leave"
 let ret = ins "ret"
+let cqo = ins "cqo"
 
 let je (z: label) = ins "je %s" z
 let jz (z: label) = ins "jz %s" z
