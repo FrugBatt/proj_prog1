@@ -13,6 +13,7 @@ type exp =
   | Div of exp*exp
   | Mod of exp*exp
   | Fact of exp
+  | Pow of exp*exp
 
 exception Invalid_syntax
 exception Invalid_type
@@ -34,6 +35,7 @@ type syntax_t =
   | SInt_fun
   | SFloat_fun
   | SFact
+  | SPow
 
 let max_prio = 3
 let t_priority = function
@@ -53,6 +55,7 @@ let t_priority = function
   | SInt_fun -> 3
   | SFloat_fun -> 3
   | SFact -> 3
+  | SPow -> 3
 
 let t_arity = function
   | SExp _ -> 0
@@ -71,6 +74,7 @@ let t_arity = function
   | SInt_fun -> 1
   | SFloat_fun -> 1
   | SFact -> -1
+  | SPow -> 2
 
 let process_t ope e1 e2 = match ope with
   | SExp e -> SExp e
@@ -89,6 +93,7 @@ let process_t ope e1 e2 = match ope with
   | SInt_fun -> SExp (Int_fun e1)
   | SFloat_fun -> SExp (Float_fun e1)
   | SFact -> SExp (Fact e1)
+  | SPow -> SExp (Pow (e1,e2))
 
 let is_exp = function
   | SExp _ -> true
@@ -128,6 +133,7 @@ let t_of_lexem = function
   | Analyseur_lexical.Int x -> SExp (Int x)
   | Analyseur_lexical.Float x -> SExp (Float x)
   | Analyseur_lexical.Fact -> SFact
+  | Analyseur_lexical.Pow -> SPow
 
 let rec analyse_syntaxique_t l =
   let st = Stack.create () in
@@ -184,6 +190,7 @@ let rec type_of_exp = function
   | Div _ -> TInt
   | Mod _ -> TInt
   | Fact _ -> TInt
+  | Pow _ -> TInt
 
 let rec check_type = function
   | Int _ -> true
@@ -200,6 +207,7 @@ let rec check_type = function
   | Div (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
   | Mod (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
   | Fact e -> (type_of_exp e = TInt) && check_type e
+  | Pow (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
 
 let analyse_syntaxique lexems =
   let ast = analyse_syntaxique_t (List.map t_of_lexem lexems) in

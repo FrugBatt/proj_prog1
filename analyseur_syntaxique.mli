@@ -13,6 +13,7 @@ type exp =
   | Div of exp*exp
   | Mod of exp*exp
   | Fact of exp
+  | Pow of exp*exp
 
 exception Invalid_syntax
 exception Invalid_type

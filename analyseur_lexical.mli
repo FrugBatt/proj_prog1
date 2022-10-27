@@ -14,6 +14,7 @@ type lexem =
   | Int of int
   | Float of float
   | Fact
+  | Pow
 
 exception Invalid_lexem
 
