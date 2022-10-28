@@ -1,2 +1,7 @@
-proj_prog1.pdf
 x86_64.tar
+*.cmi
+*.cmo
+aritha
+*.aux
+*.log
+*.pdf

@@ -1,0 +1,153 @@
+\documentclass{report}
+
+%-----------------------------------
+%--- Hugoooo default latex header---
+%-----------------------------------
+
+%---PACKAGES---
+
+\usepackage[Glenn]{fncychap}
+
+\usepackage{fancyhdr}
+
+\usepackage[utf8x]{inputenc} 
+\usepackage[T1]{fontenc}      
+\usepackage[french]{babel} 
+
+\usepackage{array}
+
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{mathabx}
+
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\usepackage[a4paper]{geometry}
+\geometry{hscale=0.85,vscale=0.85,centering}
+
+%%\BB
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\WW}{\mathbb{W}}
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\TT}{\mathbb{T}}
+\newcommand{\YY}{\mathbb{Y}}
+\newcommand{\UU}{\mathbb{U}}
+\newcommand{\II}{\mathbf{1}}
+\newcommand{\OO}{\mathbb{O}}
+\newcommand{\PP}{\mathbb{P}}
+\renewcommand{\AA}{\mathbb{A}}
+\renewcommand{\SS}{\mathbb{S}}
+\newcommand{\DD}{\mathbb{D}}
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\GG}{\mathbb{G}}
+\newcommand{\HH}{\mathbb{H}}
+\newcommand{\JJ}{\mathbb{J}}
+\newcommand{\KK}{\mathbb{K}}
+\newcommand{\LL}{\mathbb{L}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\XX}{\mathbb{X}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\VV}{\mathbb{V}}
+\newcommand{\BB}{\mathbb{B}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\MM}{\mathbb{M}}
+
+
+%%\CAL
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\mathcal{G}}
+\renewcommand{\H}{\mathcal{H}}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\J}{\mathcal{J}}
+\newcommand{\K}{\mathcal{K}}
+\renewcommand{\L}{\mathcal{L}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\N}{\mathcal{N}}
+\renewcommand{\O}{\mathcal{O}}
+\renewcommand{\P}{\mathcal{P}}
+\newcommand{\Q}{\mathcal{Q}}
+\newcommand{\R}{\mathcal{R}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\Z}{\mathcal{Z}}
+
+%---COMMANDS---
+\newcommand{\function}[5]{\begin{array}[t]{lrcl}
+#1: & #2 & \longrightarrow & #3 \\
+    & #4 & \longmapsto & #5 \end{array}}
+    
+\newcommand{\vect}{\text{vect}}
+\renewcommand{\ker}{\text{Ker}}
+\newcommand{\ens}[3]{\mathcal{#1}_{#2}(\mathbb{#3})}
+\newcommand{\ensmat}[2]{\ens{M}{#1}{#2}}
+\newcommand{\mat}{\text{Mat}}
+\newcommand{\comp}{\text{Comp}}
+\newcommand{\pass}{\text{Pass}}
+\renewcommand{\det}{\text{det}}
+\newcommand{\dev}{\text{Dev}}
+\newcommand{\com}{\text{Com}}
+\newcommand{\card}{\text{card}}
+\newcommand{\esc}{\text{Esc}}
+\newcommand{\cpm}{\text{CPM}}
+\newcommand{\dif}{\mathop{}\!\textnormal{\slshape d}}
+\newcommand{\enc}[3]{\left#1 #2 \right#3}
+\newcommand{\ent}[2]{\enc{#1}{#2}{#1}}
+\newcommand{\norm}[1]{\ent{\|}{#1}}
+\newcommand{\pth}[1]{\left( #1 \right)}
+\newcommand{\trans}{\text{Trans}}
+\newcommand{\ind}{\text{Ind}}
+\newcommand{\tfinite}{\text{T-finite}}
+\newcommand{\tinfinite}{\text{T-infinite}}
+
+%---HEAD---
+
+\title{Projet Prog 1}
+\author{Hugo Fruchet}
+\date{\today}
+
+\renewcommand\thesection{\arabic{section}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{}
+\chead{Projet Prog1}
+\rhead{Hugo Fruchet}
+\cfoot{\thepage}
+
+\begin{document}
+
+\maketitle
+\section{Projet}
+Le projet consiste à compiler les expressions arithmétiques en assembleur. J'ai implémenter les opérateurs suivants : \\ \\
+{\verb|                        +, -, *, /, %, +., -., !, ^, int(), float()|} \\
+Pour cela j'ai divisé le projet en sous modules :
+\begin{itemize}
+  \item \verb|Analyseur_lexical| : Il contient les fonctions pour traduire une chaine de caractère en lexèmes
+  \item \verb|Analyseur_syntaxique| : Il contient les fonctions pour traduire une liste de lexèmes en un arbre syntaxique représentant l'expression arithmétique et les priorités. Ce module possère aussi un vérificateur des types dans l'arbre généré pour s'assurer que l'arbre construit est correct
+  \item \verb|Assembly| : Il contient les fonctions pour traduire un arbre syntaxique en code assembleur calculant la valeur de l'expression arithmétique. Il va aussi écrire le code généré dans un fichier spécifié
+  \item \verb|Aritha| : C'est l'entrée du programme. Il s'occupe de récupérer le contenu du fichier et d'exécuter tous les modules dans le bon ordre pour compiler l'expression arithmétique en assembleur
+  \item \verb|X86_64| : C'est le module pour gérer le code assembleur
+\end{itemize}
+J'ai rajouté un Makefile qui permet de compiler dans le bon ordre tous les fichiers
+
+\section{Déroulement}
+J'ai écrit dans l'ordre le lexer, parser puis le compiler en assembly. Pour cela j'ai rencontré plusieurs soucis
+\begin{itemize}
+  \item Lors de l'implémentation des flottants la librairie \verb|X86_64| ne contenait pas les registres et opérations nécessaire, j'ai dû rajouter à la main les variables et fonctions que je devais utiliser (conversion de type, registres xmm0...)
+  \item Lors de l'implémentation des flottants, je ne pouvais pas utliser les opérations \verb|pushq| et \verb|popq| pour les ajouter dans la pile. En analysant la sortie du compilateur gcc, j'ai réussi à ajouter manuellement les flottants dans la pile en manipulant la tête \verb|%rsp|
+\end{itemize}
+
+\end{document}

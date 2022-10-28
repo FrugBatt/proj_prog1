@@ -1,3 +1,8 @@
+all: rapport.pdf aritha
+
+rapport.pdf: rapport.tex
+	pdflatex rapport.tex
+
 aritha: x86_64.cmo analyseur_lexical.cmo analyseur_syntaxique.cmo assembly.cmo aritha.ml
 	ocamlc -o aritha x86_64.cmo analyseur_lexical.cmo analyseur_syntaxique.cmo assembly.cmo aritha.ml
 
@@ -22,4 +27,4 @@ x86_64.cmi: x86_64.mli
 	ocamlc -c x86_64.mli
 
 clean:
-	rm *.cmi *.cmo aritha
+	rm *.cmi *.cmo aritha rapport.aux rapport.log rapport.pdf
