@@ -25,6 +25,14 @@ x86_64.cmo: x86_64.cmi x86_64.ml
 	ocamlc -c x86_64.ml
 x86_64.cmi: x86_64.mli
 	ocamlc -c x86_64.mli
+	
+examples2:
+	./aritha examples/testInteger.exp
+	gcc -no-pie examples/testInteger.s -o examples/testInteger
+	./aritha examples/testFloat.exp
+	gcc -no-pie examples/testFloat.s -o examples/testFloat
+	./aritha examples/testBonus.exp
+	gcc -no-pie examples/testBonus.s -o examples/testBonus
 
 clean:
 	rm *.cmi *.cmo aritha rapport.aux rapport.log rapport.pdf

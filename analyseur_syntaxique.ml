@@ -174,7 +174,7 @@ let rec analyse_syntaxique_t l =
           let parenth = extract_parenth st in aux priority ((SExp (analyse_syntaxique_t parenth))::t);
         else begin
           if h = SPlus_int && (Stack.is_empty st || not (is_exp (Stack.top st))) then Stack.push SPlus_unary st
-          else if h = SMinus_int && (Stack.is_empty st || not (is_exp (Stack.top st))) then (print_endline "pushed"; Stack.push SMinus_unary st)
+          else if h = SMinus_int && (Stack.is_empty st || not (is_exp (Stack.top st))) then Stack.push SMinus_unary st
           else Stack.push h st;
           aux priority t
         end
