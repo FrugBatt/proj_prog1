@@ -15,8 +15,8 @@ type as_exp =
   | ATimes_float of as_exp*as_exp
   | ADiv of as_exp*as_exp
   | AMod of as_exp*as_exp
-  | AFact of string*as_exp
-  | APow of string*as_exp*as_exp
+  | AFact of as_exp
+  | APow of as_exp*as_exp
 
 type exp_type =
   | TInt
@@ -40,7 +40,7 @@ let rec type_of_exp = function
   | APow _ -> TInt
 
 let as_exp_of_exp e =
-  let fl = ref (-1) and fa= ref (-1) and po = ref (-1) in
+  let fl = ref (-1) in
   let rec aux = function
     | Int x -> AInt x
     | Float x -> incr fl; AFloat (".LC"^(string_of_int !fl), x)
@@ -55,8 +55,8 @@ let as_exp_of_exp e =
     | Times_float (e1,e2) -> ATimes_float (aux e1, aux e2)
     | Div (e1,e2) -> ADiv (aux e1, aux e2)
     | Mod (e1,e2) -> AMod (aux e1, aux e2)
-    | Fact e -> incr fa; AFact (".FACT"^(string_of_int !fa), aux e)
-    | Pow (e1,e2) -> incr po; APow (".POW"^(string_of_int !po), aux e1,aux e2)
+    | Fact e -> AFact (aux e)
+    | Pow (e1,e2) -> APow (aux e1,aux e2)
   in aux e
 
 let rec as_exp_data = function
@@ -73,8 +73,8 @@ let rec as_exp_data = function
   | ATimes_float (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | ADiv (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | AMod (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
-  | AFact (_,e) -> as_exp_data e
-  | APow (_,e1,e2) -> as_exp_data e1 ++ as_exp_data e2
+  | AFact e -> as_exp_data e
+  | APow (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   
 let print_int_fun =
   label "print_int" ++
@@ -91,10 +91,37 @@ let print_float_fun =
     call "printf" ++
     ret
 
-let push_int op = subq (imm 8) (reg rbp) ++ movq op (ind rbp)
-let pop_int r = movq (ind rbp) (reg r) ++ addq (imm 8) (reg rbp)
-let push_float op = subq (imm 8) (reg rbp) ++ movsd op (reg xmm0) ++ movsd (reg xmm0) (ind rbp)
-let pop_float regx = movsd (ind rbp) (reg regx) ++ addq (imm 8) (reg rbp)
+let pow_fun =
+  label "pow_fun" ++
+    cmpq (imm 0) (reg rsi) ++
+    jz "pow_fun0" ++
+    subq (imm 1) (reg rsi) ++
+    call "pow_fun" ++
+    imulq (reg rdi) (reg rax) ++
+    ret ++
+  label "pow_fun0" ++
+    movq (imm 1) (reg rax) ++
+    ret
+
+let fact_fun =
+  label "fact_fun" ++
+    cmpq (imm 0) (reg rdi) ++
+    jz "fact_fun0" ++
+    pushq (reg rdi) ++
+    decq (reg rdi) ++
+    call "fact_fun" ++
+    popq rdi ++
+    imulq (reg rdi) (reg rax) ++
+    ret ++
+  label "fact_fun0" ++
+    movq (imm 1) (reg rax) ++
+    ret
+
+
+let push_int op = pushq op
+let pop_int r = popq r
+let push_float op = subq (imm 8) (reg rsp) ++ movsd op (reg xmm0) ++ movsd (reg xmm0) (ind rsp)
+let pop_float regx = movsd (ind rsp) (reg regx) ++ addq (imm 8) (reg rsp)
 
 let extract_stack = pop_int r13 ++ pop_int r14
 let extract_stack_float = pop_float xmm0 ++ pop_float xmm1
@@ -114,17 +141,18 @@ let rec generate_main = function
   | AMinus_unary (e) ->
       if type_of_exp e = TInt then generate_main (ATimes_int (AInt (-1), e))
       else (generate_main e) ++ pop_float xmm0 ++ mulsd (lab ".NEG") (reg xmm0) ++ push_float (reg xmm0)
-  | AFact (l,e) -> (generate_main e) ++ pop_int r15 ++ push_int (imm 1) ++ push_int (imm 1) ++ label l ++ pop_int r13 ++ pop_int r14 ++ addq (imm 1) (reg r14) ++ imulq (reg r14) (reg r13) ++ push_int (reg r14) ++ push_int (reg r13) ++ cmpq (reg r14) (reg r15) ++ jnz l ++ pop_int r13 ++ pop_int r14 ++ push_int (reg r13)
-  | APow (l,e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ pop_int r15 ++ pop_int r13 ++ movq (reg r13) (reg r14) ++ label l ++ imulq (reg r14) (reg r13) ++ subq (imm 1) (reg r15) ++ cmpq (imm 1) (reg r15) ++ jnz l ++ push_int (reg r13)
+  | AFact e -> (generate_main e) ++ pop_int rdi ++ call "fact_fun" ++ push_int (reg rax)
+  | APow (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ pop_int rsi ++ pop_int rdi ++ call "pow_fun" ++ push_int (reg rax)
   | _ -> failwith "not implemented"
 
 let generate_assembly e =
   let header = globl "main" in
   let t = type_of_exp e in
-  let main = label "main" ++ movq (reg rsp) (reg rbp) ++ (generate_main e) in
+  let main = label "main" ++ (generate_main e) in
+  let funs = fact_fun ++ pow_fun in
   let data = label "S_int" ++ string "%d\n" ++ label "S_float" ++ string "%f\n" ++ label ".NEG" ++ double (-1.0) ++ as_exp_data e in
-  if t = TInt then {text = header ++ main ++ pop_int rdi ++ call "print_int" ++ ret ++ print_int_fun; data = data}
-  else {text = header ++ main ++ pop_float xmm0 ++ call "print_float" ++ ret ++ print_float_fun; data = data}
+  if t = TInt then {text = header ++ main ++ pop_int rdi ++ call "print_int" ++ ret ++ funs ++ print_int_fun; data = data}
+  else {text = header ++ main ++ pop_float xmm0 ++ call "print_float" ++ ret ++ funs ++ print_float_fun; data = data}
 
 let write_assembly file e =
   let oc = open_out file in
