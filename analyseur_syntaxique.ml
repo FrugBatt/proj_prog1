@@ -1,3 +1,4 @@
+(* Type exp principal qui code l'AST final de l'analyse syntaxique *)
 type exp =
   | Int of int
   | Float of float
@@ -15,9 +16,11 @@ type exp =
   | Fact of exp
   | Pow of exp*exp
 
+(* Exceptions pour pouvoir savoir où est l'erreur *)
 exception Invalid_syntax
 exception Invalid_type
 
+(* Type intermédiaire utilisé pour l'analyse syntaxique : un élement syntax_t est soit un lexem soit une expression AST (lorsque le parser calcul l'AST) *)
 type syntax_t =
   | SExp of exp
   | SL_Parenth
@@ -37,6 +40,7 @@ type syntax_t =
   | SFact
   | SPow
 
+(* Définition de la priorité des opérateurs lors de l'analyse syntaxique *)
 let max_prio = 3
 let t_priority = function
   | SExp _ -> -1
@@ -57,6 +61,7 @@ let t_priority = function
   | SFact -> 3
   | SPow -> 3
 
+(* Définition de l'arité des opérateurs (-1 = 1 argument présent avant l'opérateur) *)
 let t_arity = function
   | SExp _ -> 0
   | SL_Parenth -> 0
@@ -76,6 +81,7 @@ let t_arity = function
   | SFact -> -1
   | SPow -> 2
 
+(* Traduction d'un lexem syntax_t en expression AST du type syntax_t *)
 let process_t ope e1 e2 = match ope with
   | SExp e -> SExp e
   | SL_Parenth -> failwith "Unprocessable"
@@ -95,6 +101,7 @@ let process_t ope e1 e2 = match ope with
   | SFact -> SExp (Fact e1)
   | SPow -> SExp (Pow (e1,e2))
 
+(* Fonctions utilitaires pour convertir un syntax_t en AST *)
 let is_exp = function
   | SExp _ -> true
   | _ -> false
@@ -102,6 +109,7 @@ let get_exp = function
   | SExp e -> e
   | _ -> raise Invalid_syntax
 
+(* Fonction utilitaire pour récupérer le contenu d'une pile dans une liste *)
 let reconstruct_stack st =
   let l = ref [] in
   while not (Stack.is_empty st) do
@@ -109,6 +117,7 @@ let reconstruct_stack st =
   done;
   !l
 
+(* Fonction utilitaire pour récupérer le contenu entre parenthèse *)
 let extract_parenth st =
   let l = ref [] in
   while Stack.top st <> SL_Parenth do
@@ -117,6 +126,7 @@ let extract_parenth st =
   ignore (Stack.pop st);
   !l
 
+(* Conversion lexem -> syntax_t *)
 let t_of_lexem = function
   | Analyseur_lexical.L_Parenth -> SL_Parenth
   | Analyseur_lexical.R_Parenth -> SR_Parenth
@@ -135,6 +145,7 @@ let t_of_lexem = function
   | Analyseur_lexical.Fact -> SFact
   | Analyseur_lexical.Pow -> SPow
 
+(* Fonction d'analyse syntaxique avec en entrée des syntax_t *)
 let rec analyse_syntaxique_t l =
   let st = Stack.create () in
   let rec aux priority l = match l with
@@ -170,11 +181,12 @@ let rec analyse_syntaxique_t l =
   in aux max_prio l
 
 
-
+(* Types pour la vérification des types *)
 type exp_t =
   | TInt
   | TFloat
-
+ 
+(* Type requis pour une expression *)
 let rec type_of_exp = function
   | Int _ -> TInt
   | Float _ -> TFloat
@@ -192,6 +204,7 @@ let rec type_of_exp = function
   | Fact _ -> TInt
   | Pow _ -> TInt
 
+(* Vérification des types d'un AST *)
 let rec check_type = function
   | Int _ -> true
   | Float _ -> true
@@ -209,6 +222,7 @@ let rec check_type = function
   | Fact e -> (type_of_exp e = TInt) && check_type e
   | Pow (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
 
+(* Fonction principale pour l'analyse syntaxique *)
 let analyse_syntaxique lexems =
   let ast = analyse_syntaxique_t (List.map t_of_lexem lexems) in
   if check_type ast then ast

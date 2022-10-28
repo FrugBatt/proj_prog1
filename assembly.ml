@@ -1,6 +1,7 @@
 open Analyseur_syntaxique
 open X86_64
 
+(* Type d'une expresion pour le code assembleur qui stocke le nom des variables flottantes *)
 type as_exp =
   | AInt of int
   | AFloat of string*float
@@ -18,10 +19,12 @@ type as_exp =
   | AFact of as_exp
   | APow of as_exp*as_exp
 
+(* Types pour savoir comment gérer les expressions *)
 type exp_type =
   | TInt
   | TFloat
 
+(* Types d'une as_exp *)
 let rec type_of_exp = function
   | AInt _ -> TInt
   | AFloat _ -> TFloat
@@ -39,6 +42,7 @@ let rec type_of_exp = function
   | AFact _ -> TInt
   | APow _ -> TInt
 
+(* Conversion d'une exp en as_exp *)
 let as_exp_of_exp e =
   let fl = ref (-1) in
   let rec aux = function
@@ -59,6 +63,7 @@ let as_exp_of_exp e =
     | Pow (e1,e2) -> APow (aux e1,aux e2)
   in aux e
 
+(* Récupère la partie data du programme assembleur associé à l'AST *)
 let rec as_exp_data = function
   | AInt x -> nop
   | AFloat (l,x) -> label l ++ double x
@@ -76,6 +81,7 @@ let rec as_exp_data = function
   | AFact e -> as_exp_data e
   | APow (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   
+(* Fonction print_int assembleur *)
 let print_int_fun =
   label "print_int" ++
     movq (reg rdi) (reg rsi) ++
@@ -84,6 +90,7 @@ let print_int_fun =
     call "printf" ++
     ret
 
+(* Fonction print_float assembleur *)
 let print_float_fun =
   label "print_float" ++
     movq (ilab "S_float") (reg rdi) ++
@@ -91,6 +98,7 @@ let print_float_fun =
     call "printf" ++
     ret
 
+(* Fonction de la puissance assembleur *)
 let pow_fun =
   label "pow_fun" ++
     cmpq (imm 0) (reg rsi) ++
@@ -103,6 +111,7 @@ let pow_fun =
     movq (imm 1) (reg rax) ++
     ret
 
+(* Fonction de la factorielle *)
 let fact_fun =
   label "fact_fun" ++
     cmpq (imm 0) (reg rdi) ++
@@ -118,14 +127,17 @@ let fact_fun =
     ret
 
 
+(* Centralisation des commandes de manipulation de la pile assembleur *)
 let push_int op = pushq op
 let pop_int r = popq r
 let push_float op = subq (imm 8) (reg rsp) ++ movsd op (reg xmm0) ++ movsd (reg xmm0) (ind rsp)
 let pop_float regx = movsd (ind rsp) (reg regx) ++ addq (imm 8) (reg rsp)
 
+(* Retirer la tête de la pile *)
 let extract_stack = pop_int r13 ++ pop_int r14
 let extract_stack_float = pop_float xmm0 ++ pop_float xmm1
 
+(* Génère le code assembleur d'une AST *)
 let rec generate_main = function
   | AInt x -> push_int (imm x)
   | AFloat (l,_) -> push_float (lab l)
@@ -145,6 +157,7 @@ let rec generate_main = function
   | APow (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ pop_int rsi ++ pop_int rdi ++ call "pow_fun" ++ push_int (reg rax)
   | _ -> failwith "not implemented"
 
+(* Génère le program assembleur de l'AST *)
 let generate_assembly e =
   let header = globl "main" in
   let t = type_of_exp e in
@@ -154,6 +167,7 @@ let generate_assembly e =
   if t = TInt then {text = header ++ main ++ pop_int rdi ++ call "print_int" ++ ret ++ funs ++ print_int_fun; data = data}
   else {text = header ++ main ++ pop_float xmm0 ++ call "print_float" ++ ret ++ funs ++ print_float_fun; data = data}
 
+(* Écris le code assembleur d'une AST dans un fichier *)
 let write_assembly file e =
   let oc = open_out file in
   let fmt = Format.formatter_of_out_channel oc in

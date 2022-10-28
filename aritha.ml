@@ -2,11 +2,13 @@ open Analyseur_lexical
 
 let usage = "Usage : ./aritha expression.exp"
 
+(* Compile une expression et l'écrit dans un fichier *)
 let compile_exp exp_s file_s =
   let lexems = Analyseur_lexical.analyse_lexicale (List.fold_left (^) "" (String.split_on_char ' ' exp_s)) in
   let ast = Analyseur_syntaxique.analyse_syntaxique lexems in
   Assembly.write_assembly file_s ast
 
+(* Fonction main du programme qui lis le fichier et le compile *)
 let _ =
   if Array.length Sys.argv <= 1 then print_endline usage
   else let exp_file = Sys.argv.(1) in
