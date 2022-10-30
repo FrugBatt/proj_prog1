@@ -132,7 +132,7 @@
 \maketitle
 \section{Projet}
 Le projet consiste à compiler les expressions arithmétiques en assembleur. J'ai implémenter les opérateurs suivants : \\ \\
-{\verb|                        +, -, *, /, %, +., -., !, ^, int(), float()|} \\
+{\verb|                        +, -, *, /, %, +., -., *., /., !, ^, int(), float()|} \\
 Pour cela j'ai divisé le projet en sous modules :
 \begin{itemize}
   \item \verb|Analyseur_lexical| : Il contient les fonctions pour traduire une chaine de caractère en lexèmes
@@ -141,7 +141,14 @@ Pour cela j'ai divisé le projet en sous modules :
   \item \verb|Aritha| : C'est l'entrée du programme. Il s'occupe de récupérer le contenu du fichier et d'exécuter tous les modules dans le bon ordre pour compiler l'expression arithmétique en assembleur
   \item \verb|X86_64| : C'est le module pour gérer le code assembleur
 \end{itemize}
-J'ai rajouté un Makefile qui permet de compiler dans le bon ordre tous les fichiers
+J'ai rajouté un Makefile qui permet de compiler dans le bon ordre tous les fichiers \\
+
+J'ai choisi d'implémenter en bonus les opérateurs suivant :
+\begin{itemize}
+  \item Factorielle : \verb|! : int -> int|
+  \item Puissance entière : \verb|(^) : int -> int -> int|
+  \item Division flottante : \verb|(/.) : float -> float -> float|
+\end{itemize}
 
 \section{Déroulement}
 J'ai écrit dans l'ordre le lexer, parser puis le compiler en assembly. Pour cela j'ai rencontré plusieurs soucis
