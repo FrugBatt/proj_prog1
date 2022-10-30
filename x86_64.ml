@@ -239,6 +239,7 @@ let xorb a b = ins "xorb %a, %a" a () b ()
 let xorw a b = ins "xorw %a, %a" a () b ()
 let xorl a b = ins "xorl %a, %a" a () b ()
 let xorq a b = ins "xorq %a, %a" a () b ()
+let xorpd a b = ins "xorpd %a, %a" a () b ()
 
 let shlb a b = ins "shlb %a, %a" a () b ()
 let shlw a b = ins "shlw %a, %a" a () b ()

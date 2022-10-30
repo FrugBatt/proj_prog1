@@ -270,6 +270,7 @@ val xorb: [`B] operand -> [`B] operand -> text
 val xorw: [`W] operand -> [`W] operand -> text
 val xorl: [`L] operand -> [`L] operand -> text
 val xorq: [`Q] operand -> [`Q] operand -> text
+val xorpd: [`Q] operand -> [`Q] operand -> text
   (** Opérations de manipulation de bits. "et" bit à bit, "ou" bit à
        bit, "not" bit à bit *)
 

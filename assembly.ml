@@ -157,8 +157,8 @@ let rec generate_main = function
   | AInt_fun e -> (generate_main e) ++ pop_float xmm0 ++ cvttsd2si (reg xmm0) (reg r14) ++ push_int (reg r14)
   | AFloat_fun e -> (generate_main e) ++ pop_int r14 ++ cvtsi2sdq (reg r14) (reg xmm0) ++ push_float (reg xmm0)
   | AMinus_unary (e) ->
-      if type_of_exp e = TInt then generate_main (ATimes_int (AInt (-1), e))
-      else (generate_main e) ++ pop_float xmm0 ++ mulsd (lab ".NEG") (reg xmm0) ++ push_float (reg xmm0)
+      if type_of_exp e = TInt then (generate_main e) ++ pop_int r13 ++ negq (reg r13) ++ push_int (reg r13)
+      else (generate_main e) ++ xorpd (reg xmm1) (reg xmm1) ++ pop_float xmm0 ++ subsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
   | AFact e -> (generate_main e) ++ pop_int rdi ++ call "fact_fun" ++ push_int (reg rax)
   | APow (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ pop_int rsi ++ pop_int rdi ++ call "pow_fun" ++ push_int (reg rax)
 
