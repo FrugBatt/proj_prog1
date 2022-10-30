@@ -26,10 +26,17 @@ let is_letter c = 'a' <= c && c <= 'z'
 (* Vérifie si un caractère est un chiffre *)
 let is_digit c = '0' <= c && c <= '9'
 
+let fold_left f a s =
+  let n = String.length s and r = ref a in
+  for i = 0 to n-1 do
+    r := f (!r) s.[i]
+  done;
+  !r
+
 (* Vérifie si un string possède le format d'un nombre entier *)
 let is_number s =
   let f b c = b && (is_digit c) in
-    String.fold_left f true s 
+   fold_left f true s 
 
 (* Vérifie si un string possède le format d'un nombre flottant *)
 let is_float s =
