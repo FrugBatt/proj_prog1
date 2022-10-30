@@ -244,6 +244,7 @@ val imull: [`L] operand -> [`L] operand -> text
 val imulq: [`Q] operand -> [`Q] operand -> text
 
 val mulsd: [`Q] operand -> [`Q] operand -> text
+val divsd: [`Q] operand -> [`Q] operand -> text
 
 val idivq: [`Q] operand -> text
 val cqto: text

@@ -11,7 +11,8 @@ type exp =
   | Minus_float of exp*exp
   | Times_int of exp*exp
   | Times_float of exp*exp
-  | Div of exp*exp
+  | Div_int of exp*exp
+  | Div_float of exp*exp
   | Mod of exp*exp
   | Fact of exp
   | Pow of exp*exp
@@ -33,7 +34,8 @@ type syntax_t =
   | SMinus_float
   | STimes_int
   | STimes_float
-  | SDiv
+  | SDiv_int
+  | SDiv_float
   | SMod
   | SInt_fun
   | SFloat_fun
@@ -54,7 +56,8 @@ let t_priority = function
   | SMinus_float -> 1
   | STimes_int -> 2
   | STimes_float -> 2
-  | SDiv -> 2
+  | SDiv_int -> 2
+  | SDiv_float -> 2
   | SMod -> 2
   | SInt_fun -> 3
   | SFloat_fun -> 3
@@ -74,7 +77,8 @@ let t_arity = function
   | SMinus_float -> 2
   | STimes_int -> 2
   | STimes_float -> 2
-  | SDiv -> 2
+  | SDiv_int -> 2
+  | SDiv_float -> 2
   | SMod -> 2
   | SInt_fun -> 1
   | SFloat_fun -> 1
@@ -94,7 +98,8 @@ let process_t ope e1 e2 = match ope with
   | SMinus_float -> SExp (Minus_float (e1,e2))
   | STimes_int -> SExp (Times_int (e1,e2))
   | STimes_float -> SExp (Times_float (e1,e2))
-  | SDiv -> SExp (Div (e1,e2))
+  | SDiv_int -> SExp (Div_int (e1,e2))
+  | SDiv_float -> SExp (Div_float (e1,e2))
   | SMod -> SExp (Mod (e1,e2))
   | SInt_fun -> SExp (Int_fun e1)
   | SFloat_fun -> SExp (Float_fun e1)
@@ -136,7 +141,8 @@ let t_of_lexem = function
   | Analyseur_lexical.Minus_float -> SMinus_float
   | Analyseur_lexical.Times_int -> STimes_int
   | Analyseur_lexical.Times_float -> STimes_float
-  | Analyseur_lexical.Div -> SDiv
+  | Analyseur_lexical.Div_int -> SDiv_int
+  | Analyseur_lexical.Div_float -> SDiv_float
   | Analyseur_lexical.Mod -> SMod
   | Analyseur_lexical.Int_fun -> SInt_fun
   | Analyseur_lexical.Float_fun -> SFloat_fun
@@ -199,7 +205,8 @@ let rec type_of_exp = function
   | Minus_float _ -> TFloat
   | Times_int _ -> TInt
   | Times_float _ -> TFloat
-  | Div _ -> TInt
+  | Div_int _ -> TInt
+  | Div_float _ -> TFloat
   | Mod _ -> TInt
   | Fact _ -> TInt
   | Pow _ -> TInt
@@ -217,7 +224,8 @@ let rec check_type = function
   | Minus_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
   | Times_int (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
   | Times_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
-  | Div (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Div_int (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
+  | Div_float (e1,e2) -> (type_of_exp e1 = TFloat) && (type_of_exp e2 = TFloat) && check_type e1 && check_type e2
   | Mod (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2
   | Fact e -> (type_of_exp e = TInt) && check_type e
   | Pow (e1,e2) -> (type_of_exp e1 = TInt) && (type_of_exp e2 = TInt) && check_type e1 && check_type e2

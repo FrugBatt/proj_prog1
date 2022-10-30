@@ -14,7 +14,8 @@ type as_exp =
   | AMinus_float of as_exp*as_exp
   | ATimes_int of as_exp*as_exp
   | ATimes_float of as_exp*as_exp
-  | ADiv of as_exp*as_exp
+  | ADiv_int of as_exp*as_exp
+  | ADiv_float of as_exp*as_exp
   | AMod of as_exp*as_exp
   | AFact of as_exp
   | APow of as_exp*as_exp
@@ -37,7 +38,8 @@ let rec type_of_exp = function
   | AMinus_float _ -> TFloat
   | ATimes_int _ -> TInt
   | ATimes_float _ -> TFloat
-  | ADiv _ -> TInt
+  | ADiv_int _ -> TInt
+  | ADiv_float _ -> TFloat
   | AMod _ -> TInt
   | AFact _ -> TInt
   | APow _ -> TInt
@@ -57,7 +59,8 @@ let as_exp_of_exp e =
     | Minus_float (e1,e2) -> AMinus_float (aux e1, aux e2)
     | Times_int (e1,e2) -> ATimes_int (aux e1, aux e2)
     | Times_float (e1,e2) -> ATimes_float (aux e1, aux e2)
-    | Div (e1,e2) -> ADiv (aux e1, aux e2)
+    | Div_int (e1,e2) -> ADiv_int (aux e1, aux e2)
+    | Div_float (e1,e2) -> ADiv_float (aux e1, aux e2)
     | Mod (e1,e2) -> AMod (aux e1, aux e2)
     | Fact e -> AFact (aux e)
     | Pow (e1,e2) -> APow (aux e1,aux e2)
@@ -76,7 +79,8 @@ let rec as_exp_data = function
   | AMinus_float (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | ATimes_int (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | ATimes_float (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
-  | ADiv (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
+  | ADiv_int (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
+  | ADiv_float (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | AMod (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
   | AFact e -> as_exp_data e
   | APow (e1,e2) -> as_exp_data e1 ++ as_exp_data e2
@@ -144,11 +148,12 @@ let rec generate_main = function
   | APlus_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ addq (reg r13) (reg r14) ++ push_int (reg r14)
   | AMinus_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ subq (reg r13) (reg r14) ++ push_int (reg r14)
   | ATimes_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ imulq (reg r13) (reg r14) ++ push_int (reg r14)
-  | ADiv (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ (*movq (imm 0) (reg rdx) ++*) cqo ++ idivq (reg r13) ++ push_int (reg rax)
+  | ADiv_int (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ (*movq (imm 0) (reg rdx) ++*) cqo ++ idivq (reg r13) ++ push_int (reg rax)
   | AMod (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack ++ movq (reg r14) (reg rax) ++ (*movq (imm 0) (reg rdx) ++*) cqo ++ idivq (reg r13) ++ push_int (reg rdx)
   | APlus_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ addsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
   | AMinus_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ subsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
   | ATimes_float (e1,e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ mulsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
+  | ADiv_float (e1, e2) -> (generate_main e1) ++ (generate_main e2) ++ extract_stack_float ++ divsd (reg xmm0) (reg xmm1) ++ push_float (reg xmm1)
   | AInt_fun e -> (generate_main e) ++ pop_float xmm0 ++ cvttsd2si (reg xmm0) (reg r14) ++ push_int (reg r14)
   | AFloat_fun e -> (generate_main e) ++ pop_int r14 ++ cvtsi2sdq (reg r14) (reg xmm0) ++ push_float (reg xmm0)
   | AMinus_unary (e) ->

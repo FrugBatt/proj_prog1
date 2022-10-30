@@ -8,7 +8,8 @@ type lexem =
   | Minus_float
   | Times_int
   | Times_float
-  | Div
+  | Div_int
+  | Div_float
   | Mod
   | Int_fun
   | Float_fun
@@ -46,7 +47,8 @@ let lexem_of_string = function
   | "-." -> Some Minus_float
   | "*" -> Some Times_int
   | "*." -> Some Times_float
-  | "/" -> Some Div
+  | "/" -> Some Div_int
+  | "/." -> Some Div_float
   | "%" -> Some Mod
   | "int" -> Some Int_fun
   | "float" -> Some Float_fun

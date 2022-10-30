@@ -10,7 +10,8 @@ type exp =
   | Minus_float of exp*exp
   | Times_int of exp*exp
   | Times_float of exp*exp
-  | Div of exp*exp
+  | Div_int of exp*exp
+  | Div_float of exp*exp
   | Mod of exp*exp
   | Fact of exp
   | Pow of exp*exp

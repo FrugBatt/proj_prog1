@@ -16,7 +16,6 @@ let _ =
     try
       let line = input_line ic in
       let file_s = (String.sub exp_file 0 (String.index exp_file '.'))^".s" in
-      print_endline line;
       compile_exp line file_s;
       flush stdout;
       close_in ic

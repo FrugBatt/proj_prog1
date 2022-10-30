@@ -7,7 +7,8 @@ type lexem =
   | Minus_float
   | Times_int
   | Times_float
-  | Div
+  | Div_int
+  | Div_float
   | Mod
   | Int_fun
   | Float_fun

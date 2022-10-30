@@ -215,6 +215,7 @@ let imull a b = ins "imull %a, %a" a () b ()
 let imulq a b = ins "imulq %a, %a" a () b ()
 
 let mulsd a b = ins "mulsd %a, %a" a () b ()
+let divsd a b = ins "divsd %a, %a" a () b ()
 
 let idivq a = ins "idivq %a" a ()
 let cqto = S "\tcqto\n"
